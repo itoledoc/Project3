@@ -111,9 +111,6 @@ kable(hlabels,format='markdown', align=c('r'))
 
 # Data munging.
 
-The number of people in the sample is `r nrow(households)`, which belong to 
-`r length(unique(households$FOLIO))` unique households.
-
 ```{r}
 
 
