@@ -1,0 +1,120 @@
+---
+title: 'Project 3: EDA'
+author: "Ignacio Toledo"
+date: "03/15/2015"
+output: html_document
+---
+
+# Introduction
+
+For this project the data from the **"VII Encuesta de Presupuestos Familiares"**
+(VII Household Budget Survey) was selected. This is a survey done every 2 to 3
+year in Chile, that contains data about household's inhabitants, some of their
+social characteristics as income, education, gender, age, etc., and the expenses
+each household have within a month. The data is presented in two data sets, one
+with the household variables per inhabitant and some summary variables 
+(`households`), and the other with the expenses reported in several categories
+by household (`expenses`).
+
+Some data wrangling is needed before starting the exploratory data analysis, 
+given that the `households` data set have one entry by each household member, 
+while the `expenses` data set contains the expenses by household and expense
+category, not separted by household inhabitant: this means that is possible to 
+merge the data by matching the household ids, but not by individuals.
+
+# Loading libraries and data set
+
+The following libraries were used for this work:
+
+* `ggplot2`
+* `gridExtra`
+* `GGally`
+* `ggthemes`
+* `dplyr`
+* `tidyr`
+* `knitr`
+* `foreing`
+
+```{r message=FALSE, echo=F}
+library(ggplot2)
+library(ggthemes)
+library(foreign)
+library(dplyr)
+library(gridExtra)
+library(tidyr)
+library(knitr)
+library(GGally)
+```
+
+The data is stored in RData files, after being transformed from SPSS data sets.
+
+```{r Loading the data sets and some variable descriptions}
+load('households.RData')
+load('expenses.RData')
+load('education.RData')
+
+households <- select(households, -VS, -AECISE, -AEPRL)
+```
+
+
+The following code chunk is not executed, but it gives information about loading
+the data sets from the SPSS format, converting the string variables to UTF-8 
+encoding, and storing the files in RData.
+
+```{r eval=FALSE}
+households <- read.spss('~/Downloads/BASE_PERSONAS_VIIEPF.sav', to.data.frame=T)
+expenses <- read.spss('~/Downloads/BASE_GASTOS_VIIEPF.sav', to.data.frame=T)
+
+nhou <- c("PARENTESCO", "TVP", "VS", "SP01", "SP03", "AECISE", "CISE_4", 
+          "AECIUO", "PETG",  "CAEG", "CISEG", "AEPRL")
+for (i in nhou) {
+  tempo <- levels(households[, i])
+  tempo <- iconv(tempo, 'latin1', 'utf-8')
+  levels(households[, i]) <- tempo
+}
+
+tempo <- levels(expenses$GLOSA)
+tempo <- iconv(tempo, 'latin1', 'utf-8')
+levels(expenses$GLOSA) <- tempo
+
+save(file='households.RData', households)
+save(file='expenses.RData', expenses)
+save(file='descript.RData', description_households)
+```
+
+## Description of the data sets
+
+The `households` data set contains `r ncol(households)` variables and 
+`r nrow(households)` observations, corresponding to a total of 
+`r length(unique(households$FOLIO))` households. The data set have
+`r t <- 
+  as.data.frame(sapply(households, class), columns=c('type')); 
+  names(t) <- c('type'); length(t$type[t$type == 'factor'])` factor and 
+`r t <- 
+  as.data.frame(sapply(households, class), columns=c('type')); 
+  names(t) <- c('type'); length(t$type[t$type == 'numeric'])` numeric varibles.
+
+```{r}
+str(households)
+str(expenses)
+```
+
+```{r echo=F}
+hlabels <- as.data.frame(attr(households, 'variable.labels'))
+names(hlabels) <- c('Variable Description')
+kable(hlabels,format='markdown', align=c('r'))
+```
+
+```{r echo=FALSE}
+
+```
+
+# Data munging.
+
+The number of people in the sample is `r nrow(households)`, which belong to 
+`r length(unique(households$FOLIO))` unique households.
+
+```{r}
+
+
+```
