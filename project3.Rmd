@@ -2,27 +2,31 @@
 title: 'Project 3: EDA'
 author: "Ignacio Toledo"
 date: "03/15/2015"
-output: html_document
+output:
+  html_document:
+    number_sections: yes
+    theme: readable
+    toc: yes
 ---
 
 # Introduction
 
 For this project the data from the **"VII Encuesta de Presupuestos Familiares"**
 (VII Household Budget Survey) was selected. This is a survey done every 2 to 3
-year in Chile, that contains data about household's inhabitants, some of their
+years in Chile, that contains data about household's inhabitants, some of their
 social characteristics as income, education, gender, age, etc., and the expenses
-each household have within a month. The data is presented in two data sets, one
-with the household variables per inhabitant and some summary variables 
-(`households`), and the other with the expenses reported in several categories
-by household (`expenses`).
+each household have within a month. The data is splited in two data sets, one
+with the inhabitant description and income variables, with some groupping 
+categories by households (`households`); the other with the expenses reported 
+in several categories by household id (`expenses`).
 
-Some data wrangling is needed before starting the exploratory data analysis, 
-given that the `households` data set have one entry by each household member, 
-while the `expenses` data set contains the expenses by household and expense
-category, not separted by household inhabitant: this means that is possible to 
-merge the data by matching the household ids, but not by individuals.
+Some data wrangling will be needed before starting some of the exploratory data
+analysis,  given that the `households` data set have one entry by each household
+member,  while the `expenses` data set contains the expenses only by household 
+not separated by household inhabitant: this means that is possible to  merge the
+data by matching the household ids, but not by individuals.
 
-# Loading libraries and data set
+# Loading libraries and data set {#load}
 
 The following libraries were used for this work:
 
@@ -35,7 +39,7 @@ The following libraries were used for this work:
 * `knitr`
 * `foreing`
 
-```{r message=FALSE, echo=F}
+```{r libraries, message=FALSE, echo=F}
 library(ggplot2)
 library(ggthemes)
 library(foreign)
@@ -44,74 +48,200 @@ library(gridExtra)
 library(tidyr)
 library(knitr)
 library(GGally)
+library(pander)
+library(xtable)
+
+theme_set(theme_bw())
 ```
 
 The data is stored in RData files, after being transformed from SPSS data sets.
 
-```{r Loading the data sets and some variable descriptions}
+```{r load_data}
 load('households.RData')
 load('expenses.RData')
 load('education.RData')
-
-households <- select(households, -VS, -AECISE, -AEPRL)
 ```
 
+# Univariate Analysis.
 
-The following code chunk is not executed, but it gives information about loading
-the data sets from the SPSS format, converting the string variables to UTF-8 
-encoding, and storing the files in RData.
+Let's start with some simple explorations of the population in our data set. 
+What is the population's age distribution?
 
-```{r eval=FALSE}
-households <- read.spss('~/Downloads/BASE_PERSONAS_VIIEPF.sav', to.data.frame=T)
-expenses <- read.spss('~/Downloads/BASE_GASTOS_VIIEPF.sav', to.data.frame=T)
+The next figure shows an histogram using the `age` variable (a discrete 
+numerical variable). The binwidths are equal to 1 year. The figure shows that
+the population is not normally distributed and positevely skewed overall. This
+is expected, since the population must decrese with age as people dies by
+accidents, illness or natural causes. 
 
-nhou <- c("PARENTESCO", "TVP", "VS", "SP01", "SP03", "AECISE", "CISE_4", 
-          "AECIUO", "PETG",  "CAEG", "CISEG", "AEPRL")
-for (i in nhou) {
-  tempo <- levels(households[, i])
-  tempo <- iconv(tempo, 'latin1', 'utf-8')
-  levels(households[, i]) <- tempo
-}
+However is interesting to notice some peaks at around 5, 25 and 50 years of age:
+they might correspond to generations with higher natallity rates or less infant
+mortality.
 
-tempo <- levels(expenses$GLOSA)
-tempo <- iconv(tempo, 'latin1', 'utf-8')
-levels(expenses$GLOSA) <- tempo
 
-save(file='households.RData', households)
-save(file='expenses.RData', expenses)
-save(file='descript.RData', description_households)
+```{r age_hist, fig.align = 'center', fig.width = 6, fig.height = 4, echo = F}
+# A negative age is removed
+age_hist <- ggplot(aes(age), data = subset(households, age >= 0))
+
+age_hist + 
+  geom_histogram(binwidth = 1, fill = '#67a9cf', color = 'grey') +
+  xlab("Age") +
+  ylab("Counts") +
+  ggtitle("Age Distribution")
 ```
 
-## Description of the data sets
+We can arrange a little bit more this plot and create a _population pyramid_:
 
-The `households` data set contains `r ncol(households)` variables and 
-`r nrow(households)` observations, corresponding to a total of 
-`r length(unique(households$FOLIO))` households. The data set have
-`r t <- 
-  as.data.frame(sapply(households, class), columns=c('type')); 
-  names(t) <- c('type'); length(t$type[t$type == 'factor'])` factor and 
-`r t <- 
-  as.data.frame(sapply(households, class), columns=c('type')); 
-  names(t) <- c('type'); length(t$type[t$type == 'numeric'])` numeric varibles.
+```{r age_pyr,fig.align = 'center',fig.width = 8, echo = F, warning = F}
+ggplot() + 
+  geom_histogram(aes(x = age, fill = gender), binwidth = 1, 
+                 data = subset(households, gender == 'Women' & age >= 0)) + 
+  geom_histogram(aes(x = age, fill = gender, y = ..count.. * -1.), binwidth = 1, 
+                 data = subset(households, gender == "Men" & age >= 0)) + 
+  scale_fill_brewer(palette = 'Paired') +
+  scale_x_discrete(breaks = seq(0, 105, 5)) +
+  scale_y_continuous(limits = c(-400, 400)) +
+  coord_flip()
+
+gen_tab <- prop.table(table(households$gender))
+```
+
+The peaks seem to change for each gender! We can also notice that there are more
+women (`r format(100 * gen_tab[[2]][1], digits=3)`%) than men 
+(`r format(100 * gen_tab[[1]][1], digits=3)`%). Are the gender's average age
+different?
+
+```{r gender_age, fig.align='center', fig.width=8, echo=F}
+age_hist + geom_density(aes(color=gender), binwidth=1) + 
+  scale_color_brewer(palette='Paired') +
+  xlab('Age') +
+  ylab('Density')
+```
+
+We see a difference in the average age for both gender, with males having an
+overall younger population.
+
+```{r, results='asis', echo=F}
+age_gen <- subset(households, age >= 0, select=c('age', 'gender'))
+tc <- do.call(rbind, by(age_gen$age, age_gen$gender, summary))
+pandoc.table(tc, split.cells=5)
+```
+
+Let's test if the difference in statistical significant by using the Wilcoxon 
+Rank Test:
+
+```{r results='asis', echo=FALSE}
+pander(wilcox.test(age ~ gender, age_gen), table.style='multiline')
+```
+
+What about the education attainment distribution? We will study the distribution
+using an stacked histogram, so we can study at the same time if there are any
+significant differences between genders.
+
+```{r fig.align='center', echo=F}
+
+edugen_plot <- ggplot(aes(edu.level), data=households)
+
+edugen_plot + 
+  geom_histogram(aes(fill=gender)) + 
+  scale_x_discrete() +
+  scale_fill_brewer(palette='Paired')
+```
+
+We see a pick in the distribution at category 4, which correspond to the primary
+education. This doesn't mean that most of the population only reach primary
+school: we have not removed the school-age population. We could use two 
+variables to subset the data and include only the population that is no longer
+studying:
+
+* `edu.finish`: indicates wheter the person did or not finish the educational
+  attainment reported.
+* `age`: we subset only the population over 30 years old, assuming that most
+  of the people is no longer studying at that age.
+
+```{r fig.align='center', echo=FALSE}
+edugen_plot2 <- ggplot(
+  aes(edu.level, y=100 * ..count../sum(..count..)),
+  data=subset(households, edu.finish == 1))
+
+edugen_plot3 <- ggplot(
+  aes(edu.level, y=100 * ..count../sum(..count..)),
+  data=subset(households, age >= 30 & !is.na(edu.level)))
+
+p1 <- edugen_plot2 + 
+  geom_histogram(aes(fill=gender)) + 
+  scale_x_discrete(breaks=0:15, drop=F) +
+  scale_fill_brewer(palette='Paired') +
+  geom_vline(xintercept=10.5) +
+  coord_cartesian(ylim=c(0,32)) +
+  ggtitle('Population with complete education.')+
+  xlab('Educational attainment') +
+  ylab('Percentage')
+
+p2 <- edugen_plot3 + 
+  geom_histogram(aes(fill=gender)) + 
+  scale_x_discrete(breaks=0:15, drop=F) +
+  scale_fill_brewer(palette='Paired') +
+  geom_vline(xintercept=10.5) +
+  coord_cartesian(ylim=c(0,32))+
+  ggtitle('Population over 30 years old.') +
+  xlab('Educational attainment') +
+  ylab('Percentage')
+
+grid.arrange(p1, p2, ncol=1)
+```
+
+As shown in the [Introduction]
+
+```{r fig.align='center', fig.width=10, fig.height=7, echo=F}
+households$age.group <- cut(
+  households$age, seq(1,101,10),
+  labels=c('0-9 years','10-19 years','20-29 years','30-39 years','40-49 years',
+           '50-59 years','60-69 years','70-79 years','80-89 years',
+           '90-99 years'),
+  right=F)
+
+households$edu.cat <- ifelse(
+  as.numeric(households$edu.level) > 9, 'No Tertiary', 'Tertiary')
+
+cont_table <- as.data.frame(
+  prop.table(
+    table(households$age.group, households$edu.cat, households$gender),
+    m=c(1)))
+
+for (i in seq(1,nrow(cont_table),1)) {
+  cont_table[i,'pos'] <- ifelse(
+    cont_table[i,'Var3'] == "Men",
+    cont_table[i,'Freq']*0.85,
+    (cont_table[i,'Freq'] + cont_table[i-20,'Freq']) * 0.9)
+  } 
+
+ggplot(aes(Var2, y=100 * Freq), data=cont_table) + 
+  geom_bar(aes(fill=Var3), stat='identity') + 
+  scale_x_discrete() + 
+  xlab('Educational Attainment') +
+  ylab('Percentage by age group') +
+  scale_fill_brewer(palette='Paired') +
+  geom_text(
+    aes(label=paste(format(100*Freq, digits=1), '%'), y=100*pos), size=4.) + 
+  facet_wrap(~Var1,scales='free_y')
+```
 
 ```{r}
-str(households)
-str(expenses)
+ggplot(aes(kinship), data=households) + 
+  geom_histogram(aes(fill=kinship)) + 
+  scale_x_discrete(labels=1:14) + 
+  scale_fill_hue(l=50)
 ```
-
-```{r echo=F}
-hlabels <- as.data.frame(attr(households, 'variable.labels'))
-names(hlabels) <- c('Variable Description')
-kable(hlabels,format='markdown', align=c('r'))
-```
-
-```{r echo=FALSE}
-
-```
-
-# Data munging.
 
 ```{r}
+ggplot(aes(TVP), data=households) + 
+  geom_histogram()
+```
 
+# Bivariate Analysis.
+
+```{r warning=F, echo=F}
+ggplot(aes(INGDHOG_HD_AI, GASTOT_FNR), data=subset(households, JHOGAR='Si')) +
+  geom_point() + scale_x_log10(breaks=c(1e4,1e5,1e6,1e7)) + scale_y_log10(breaks=c(1e4,1e5,1e6))
 
 ```
