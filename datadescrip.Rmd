@@ -1,0 +1,119 @@
+---
+title: "Dataset Description"
+author: "Ignacio Toledo"
+date: "03/24/2015"
+output: html_document
+---
+
+```{r message=FALSE, echo=F}
+library(ggplot2)
+library(ggthemes)
+library(foreign)
+library(dplyr)
+library(gridExtra)
+library(tidyr)
+library(knitr)
+library(GGally)
+```
+
+The following code chunk is not executed, but it gives information about loading
+the data sets from the SPSS format, converting the string variables to UTF-8 
+encoding, and storing the files in RData.
+
+```{r eval=FALSE}
+households <- read.spss('~/Downloads/BASE_PERSONAS_VIIEPF.sav', to.data.frame=T)
+expenses <- read.spss('~/Downloads/BASE_GASTOS_VIIEPF.sav', to.data.frame=T)
+
+nhou <- c("PARENTESCO", "TVP", "VS", "SP01", "SP03", "AECISE", "CISE_4", 
+          "AECIUO", "PETG",  "CAEG", "CISEG", "AEPRL")
+for (i in nhou) {
+  tempo <- levels(households[, i])
+  tempo <- iconv(tempo, 'latin1', 'utf-8')
+  levels(households[, i]) <- tempo
+}
+
+tempo <- levels(expenses$GLOSA)
+tempo <- iconv(tempo, 'latin1', 'utf-8')
+levels(expenses$GLOSA) <- tempo
+
+save(file='households.RData', households)
+save(file='expenses.RData', expenses)
+save(file='descript.RData', description_households)
+```
+
+## Description of the data sets
+
+```{r}
+load('households.RData')
+load('expenses.RData')
+load('education.RData')
+str(households)
+str(expenses)
+```
+
+The `households` data set contains `r ncol(households)` variables and 
+`r nrow(households)` observations, corresponding to a total of 
+`r length(unique(households$FOLIO))` households. The data set have
+`r t <- 
+  as.data.frame(sapply(households, class), columns=c('type')); 
+  names(t) <- c('type'); length(t$type[t$type == 'factor'])` factor and 
+`r t <- 
+  as.data.frame(sapply(households, class), columns=c('type')); 
+  names(t) <- c('type'); length(t$type[t$type == 'numeric'])` numeric varibles.
+
+
+
+```{r echo=F}
+hlabels <- as.data.frame(attr(households, 'variable.labels'))
+names(hlabels) <- c('Variable Description')
+hlabels$"Variable Description" <- c(
+  "Zone","Household unique identifier.", "Person order within a household.",
+  "Expansion factor.","Household's number of members.",
+  "Is the person the Household's head?",
+  "Relationship to the households's head.","Person's gender.","Person's age.",
+  "Person's marital status of the person.","Person's years of schooling.",
+  "Person's number of approved courses.","Person's educational level.",
+  "Did the individual finish the educational level?",
+  "The person who contributed most to the household budget: Main breadwinner.",
+  "Person in charge of household's purchases.","Household type of tenure.",
+  "Second houshold type of tenure (if any).","Person's health insurance",
+  "Person's retirement found.",
+  "International Classification of Status in Employment (ind.)",
+  "International Classification of Status in Employment (summary, ind.)",
+  "Uniform International Classification of Occupations (ind.)",
+  "Person's working population catergory.",
+  "Person's economical activity status.",
+  "International Classification of Status in Employment, summary (2 cat.)",
+  "Reference period of the main economic activity.",
+  "Total expenses per household adjusted for non-response (w/o imputed rent)",
+  "Total expenses per household adjusted for non-response (with imputed rent)",
+  "Total available household income (without imputed rent)",
+  "Total available household income (with imputed rent)",
+  "Total gross household income (without imputed rent)",
+  "Total gross income per household (with imputed rent)",
+  "Imputed rent, main household","Imputed rent, second household",
+  "Income from dependent employment","Income from self-employment",
+  "Available income from salary","Available income from salary imputed by HD",
+  "Gross income from salary","Gross income from salary imputed by HD",
+  "Available income from ","Disposable income of fees imputed by HD",
+  "Gross income from fees observed","Gross income from fees imputed by HD",
+  "Income available for those with business on their own observed",
+  "Income available for those with business imputed with HD",
+  "Gross income of those who are self-employed business noticed",
+  "Gross income for those with business imputed with HD",
+  "Disposable income of independent professionals observed",
+  "Disposable income of the accused freelancers for HD",
+  "Gross income of freelancers observed",
+  "Gross income of independent professionals imputed with HD",
+  "Gross income in retirement observed",
+  "Gross income in retirement accused by HD",
+  "Gross income from other salaried jobs",
+  "Gross income from other freelance jobs","Income Property",
+  "Income from financial instruments","Income from net transfers",
+  "Identification of home with underreported income")
+kable(hlabels,format='markdown', align=c('r'))
+```
+
+```{r echo=FALSE}
+
+```
