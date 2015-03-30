@@ -227,21 +227,78 @@ ggplot(aes(Var2, y=100 * Freq), data=cont_table) +
 ```
 
 ```{r}
+la <- levels(households$kinship)
+for (i in 1:14) {
+  la[i] <- paste('(', i, ') ', la[i], sep="")
+  }
+
 ggplot(aes(kinship), data=households) + 
   geom_histogram(aes(fill=kinship)) + 
   scale_x_discrete(labels=1:14) + 
-  scale_fill_hue(l=50)
+  scale_fill_hue(l=50, labels=la)
 ```
 
 ```{r}
-ggplot(aes(TVP), data=households) + 
+la <- levels(households$TVP)
+for (i in 1:14) {
+  la[i] <- paste('(', i, ') ', la[i], sep="")
+  }
+
+ggplot(aes(TVP, y=100 * ..count../sum(..count..)), data=households) + 
+  geom_histogram(aes(fill=TVP)) +
+  scale_x_discrete(labels=1:14) + 
+  scale_fill_hue(l=50, labels=la)
+```
+
+```{r}
+households$INGDHOG_HD_AI <- households$INGDHOG_HD_AI / 623.
+ggplot(aes(INGDHOG_HD_AI), data=households) +
   geom_histogram()
+```
+
+```{r}
+ggplot(aes(INGDHOG_HD_AI), data = households) +
+  geom_histogram(binwidth = 0.1) +
+  scale_x_log10(breaks = c(100, 1000, 10000))
+```
+
+```{r}
+decil <- quantile(households$INGDHOG_HD_AI, probs = seq(0, 1, 0.1), na.rm = T)
+households$income.dec <- cut(households$INGDHOG_HD_AI, decil, right = F)
+
+indec <- subset(households, !is.na(income.dec)) %>% 
+  group_by(income.dec) %>% 
+  summarise(Total=sum(INGDHOG_HD_AI, na.rm=T))
+
+p1 <- ggplot(aes(income.dec, y= 100 * Total / sum(Total)),
+       data = indec) +
+  geom_bar(stat='identity') +
+  coord_cartesian(ylim=c(0, 40))
+p1
+```
+
+```{r}
+outdec <- subset(households, !is.na(income.dec)) %>% 
+  group_by(income.dec) %>% 
+  summarise(Total=sum(GASTOT_FNR_AI, na.rm=T)/623.)
+
+p2 <- ggplot(aes(income.dec, y= 100 * Total / sum(Total)),
+             data = outdec) +
+  geom_bar(stat='identity') +
+  coord_cartesian(ylim=c(0, 40))
+
+grid.arrange(p1, p2, ncol=1)
+```
+
+```{r}
+summary(households$INGDHOG_HD_AI)
 ```
 
 # Bivariate Analysis.
 
 ```{r warning=F, echo=F}
-ggplot(aes(INGDHOG_HD_AI, GASTOT_FNR), data=subset(households, JHOGAR='Si')) +
-  geom_point() + scale_x_log10(breaks=c(1e4,1e5,1e6,1e7)) + scale_y_log10(breaks=c(1e4,1e5,1e6))
+ggplot(aes(INGDHOG_HD_AI, GASTOT_FNR_AI/623.), data=subset(households, JHOGAR='Si')) +
+  geom_point(alpha=0.01) + scale_x_log10(breaks=c(100,1000,10000)) + scale_y_log10(breaks=c(100,1000,10000)) + geom_smooth(method = 'gam', formula = y ~ x) +
+  coord_cartesian(xlim=c(100,70000), ylim=c(100,70000))
 
 ```
