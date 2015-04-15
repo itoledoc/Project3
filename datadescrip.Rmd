@@ -6,14 +6,10 @@ output: html_document
 ---
 
 ```{r message=FALSE, echo=F}
-library(ggplot2)
-library(ggthemes)
 library(foreign)
 library(dplyr)
-library(gridExtra)
 library(tidyr)
 library(knitr)
-library(GGally)
 ```
 
 The following code chunk is not executed, but it gives information about loading
@@ -21,11 +17,13 @@ the data sets from the SPSS format, converting the string variables to UTF-8
 encoding, and storing the files in RData.
 
 ```{r eval=FALSE}
-households <- read.spss('~/Downloads/BASE_PERSONAS_VIIEPF.sav', to.data.frame=T)
-expenses <- read.spss('~/Downloads/BASE_GASTOS_VIIEPF.sav', to.data.frame=T)
+households <- read.spss('~/Downloads/personas_spss.sav', to.data.frame = T)
+expenses <- read.spss('~/Downloads/gastos_spss.sav', to.data.frame = T)
+cate <- read.spss('~/Downloads/CCIF_VIIEPF.sav', to.data.frame = T)
 
-nhou <- c("PARENTESCO", "TVP", "VS", "SP01", "SP03", "AECISE", "CISE_4", 
-          "AECIUO", "PETG",  "CAEG", "CISEG", "AEPRL")
+nhou <- c("PARENTESCO", "TVP", "VS", "SP01", "SP02", "SP03", "AECISE", "CISE_4", 
+          "AECIUO", "PETG",  "CAEG", "CISEG", "AEPRL", "EDUNIVEL", "SP04",
+          "AECIUO2", "AE01", "AE02", "AE03", "EDUACTUAL", "AE08")
 for (i in nhou) {
   tempo <- levels(households[, i])
   tempo <- iconv(tempo, 'latin1', 'utf-8')

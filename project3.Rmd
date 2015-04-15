@@ -50,6 +50,8 @@ library(knitr)
 library(GGally)
 library(pander)
 library(xtable)
+library(googleVis)
+op <- options(gvis.plot.tag='chart')
 
 theme_set(theme_bw())
 ```
@@ -143,7 +145,7 @@ edugen_plot <- ggplot(aes(edu.level), data=households)
 
 edugen_plot + 
   geom_histogram(aes(fill=gender)) + 
-  scale_x_discrete() +
+  scale_x_discrete(labels = seq(0,15,1)) +
   scale_fill_brewer(palette='Paired')
 ```
 
@@ -160,8 +162,8 @@ studying:
 
 ```{r fig.align='center', echo=FALSE}
 edugen_plot2 <- ggplot(
-  aes(edu.level, y=100 * ..count../sum(..count..)),
-  data=subset(households, edu.finish == 1))
+  aes(edu.level, y=100 * ..count.. / sum(..count..)),
+  data=subset(households, edu.finish == "Si"))
 
 edugen_plot3 <- ggplot(
   aes(edu.level, y=100 * ..count../sum(..count..)),
@@ -296,9 +298,19 @@ summary(households$INGDHOG_HD_AI)
 
 # Bivariate Analysis.
 
+```{r}
+ggplot(aes(age, INGDA), data=subset(households, age > 0 & INGDA > 0)) +
+  geom_jitter(alpha=0.4) +
+  scale_y_log10(breaks=c(30000,100000,500000,1000000,10000000))
+
+ggplot(aes(age, INGDA), data=subset(households, age > 0 & INGDA > 0)) +
+  geom_jitter(alpha=0.4) +
+  coord_trans(ytrans='log1p')
+```
+
 ```{r warning=F, echo=F}
 ggplot(aes(INGDHOG_HD_AI, GASTOT_FNR_AI/623.), data=subset(households, JHOGAR='Si')) +
   geom_point(alpha=0.01) + scale_x_log10(breaks=c(100,1000,10000)) + scale_y_log10(breaks=c(100,1000,10000)) + geom_smooth(method = 'gam', formula = y ~ x) +
   coord_cartesian(xlim=c(100,70000), ylim=c(100,70000))
-
 ```
+
