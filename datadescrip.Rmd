@@ -113,5 +113,12 @@ kable(hlabels,format='markdown', align=c('r'))
 ```
 
 ```{r echo=FALSE}
+nh <- names(households)
+nh[42:76]
+for (i in nh[42:76]) {
+  households[, i] <- households[, i] / 612
+}
+
+
 
 ```
