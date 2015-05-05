@@ -228,6 +228,13 @@ ggplot(aes(factor(EDUDEPENDENCIA, levels=ord)), data = households) +
   theme(axis.text.x = element_text(angle = 40, hjust = 1))
 ```
 
+```{r edudep2, fig.align='center'}
+ggplot(aes(factor(EDUDEPENDENCIA, levels = ord), y = 100 * ..count.. / sum(..count..)),
+       data = households[households$EDUDEPENDENCIA %in% ord[c(3,2,5)], ]) +
+  geom_histogram(fill = "#67a9cf") +
+  theme(axis.text.x = element_text(angle = 40, hjust = 1))
+```
+
 # Bivariate Analysis.
 
 We can arrange a little bit more this plot and create a _population pyramid_:
