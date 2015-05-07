@@ -41,6 +41,7 @@ The following libraries were used for this work:
 ```{r libraries, message=FALSE, echo=F}
 library(ggplot2)
 library(ggthemes)
+library(GGally)
 library(dplyr)
 library(gridExtra)
 library(tidyr)
@@ -59,10 +60,22 @@ load("expenses.RData")
 load("education.RData")
 ```
 
+Some cleaning is still needed, for example there two negative ages and some
+households without a total income reported, because of missing data.
+
+```{r clean_data}
+households <- subset(households, age > 0 & !is.na(INGDHOG_HD_AI))
+```
+
 # Univariate Analysis.
 
 Let's start with some simple explorations of the population in our data set. 
-What is the population's age distribution?
+What is the population's age distribution? The `summary` function can give us
+a start:
+
+```{r age_sum}
+summary(households[,'age'])
+```
 
 The next figure shows an histogram using the `age` variable (a discrete 
 numerical variable). The binwidths are equal to 1 year. The figure shows that
@@ -82,14 +95,12 @@ age_hist <- ggplot(aes(age), data = subset(households, age >= 0))
 age_hist + 
   geom_histogram(binwidth = 1, fill = "#67a9cf", color = "grey") +
   xlab("Age") +
-  ylab("Counts") +
+  ylab("Freq.") +
   ggtitle("Age Distribution")
 ```
 
 
-What about the education attainment distribution? We will study the distribution
-using an stacked histogram, so we can study at the same time if there are any
-significant differences between genders.
+What about the education attainment distribution?
 
 ```{r eduatt, fig.align='center', echo=F}
 edugen_plot <- ggplot(aes(edu.level), data = households)
@@ -98,12 +109,15 @@ edugen_plot +
   geom_histogram(fill = "#67a9cf") + 
   theme(axis.text.x = element_text(angle = 40, hjust = 1)) +
   xlab("Educational Attainment") +
-  ylab("Count") +
+  ylab("Freq.") +
   ggtitle("Educational Attainment Distribution")
 ```
 
 
+
 ```{r kinship, fig.align='center', echo=F}
+# For displaying purposes a charcter vector is created, that orders the levels
+# by Frequency
 ord <- as.character(
   arrange(data.frame(table(households$kinship)),
           desc(Freq))$Var1)
@@ -112,11 +126,12 @@ ggplot(aes(factor(kinship, levels = ord), y = ..count..), data = households) +
   geom_histogram(fill = "#67a9cf") + 
   theme(axis.text.x=element_text(angle = 40, hjust = 1)) +
   xlab("Relationship with Household Head") +
-  ylab("Count")
+  ylab("Freq.")
 ```
 
 ```{r houseten, fig.align='center', echo=F}
-
+# For displaying purposes a charcter vector is created, that orders the levels
+# by Frequency
 ord <- as.character(
   arrange(data.frame(table(households$TVP)),
           desc(Freq))$Var1)
@@ -178,6 +193,7 @@ levels(houseinc$income.dec) <- c(
   "US$3 to US$419", "US$420 to US$575", "US$576 to US$738", "US$739 to US$907",
   "US$908 to US$1109", "US$1110 to US$1369", "US$1370 to US$1709", 
   "US$1710 to US$2309", "US$2310 to US$3609", "US$3610 and Up" )
+levels(households$income.dec) <- levels(houseinc$income.dec)
 
 indec <- subset(houseinc, !is.na(income.dec)) %>% 
   group_by(income.dec) %>% 
@@ -187,18 +203,24 @@ indec <- subset(houseinc, !is.na(income.dec)) %>%
 ```{r checkincquant_plot, echo=FALSE, fig.align='center'}
 ggplot(aes(income.dec), data = houseinc) +
   geom_histogram(fill = "#67a9cf") +
-  theme(axis.text.x = element_text(angle = 40, hjust = 1))
+  theme(axis.text.x = element_text(angle = 40, hjust = 1)) +
+  xlab('Household Incomes\' Deciles') +
+  ylab('Household by Decile') +
+  ggtitle('Checking Deciles')
 ```
 
 
 ```{r totincquant_plot, echo=FALSE, fig.align='center'}
 ggplot(aes(income.dec, y = 100 * Total / sum(Total)), data = indec) +
   geom_bar(stat = "identity", fill = "#67a9cf") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  xlab('Household Incomes\' Deciles') +
+  ylab('Percentage of the Total Household Income') +
+  ggtitle('Household Income Distribution by Deciles')
 ```
 
 So, while the mean household income is US$`r summary(houseinc$INGDHOG_HD_AI)[4]`
-the median is at US$`r summary(houseinc$INGDHOG_HD_AI)[4]`. How it does
+the median is at US$`r summary(houseinc$INGDHOG_HD_AI)[3]`. How it does
 compare with other countries?
 
 ```{r houseinc_summ, echo=F}
@@ -211,7 +233,9 @@ inhab <- households %>%
 
 ggplot(aes(as.factor(num.inhabitants)), data = inhab) +
   geom_histogram(fill = "#67a9cf") +
-  scale_x_discrete()
+  scale_x_discrete() +
+  xlab('Number of Inhabitants by Household') +
+  ylab('Frequency')
 ```
 
 ```{r inhab_summ}
@@ -225,15 +249,40 @@ ord <- as.character(
 
 ggplot(aes(factor(EDUDEPENDENCIA, levels=ord)), data = households) +
   geom_histogram(fill = "#67a9cf") + 
-  theme(axis.text.x = element_text(angle = 40, hjust = 1))
+  theme(axis.text.x = element_text(angle = 40, hjust = 1)) +
+  xlab('Educational Institution Type (private/public)') +
+  ylab('Frequency')
 ```
 
 ```{r edudep2, fig.align='center'}
 ggplot(aes(factor(EDUDEPENDENCIA, levels = ord), y = 100 * ..count.. / sum(..count..)),
        data = households[households$EDUDEPENDENCIA %in% ord[c(3,2,5)], ]) +
   geom_histogram(fill = "#67a9cf") +
-  theme(axis.text.x = element_text(angle = 40, hjust = 1))
+  theme(axis.text.x = element_text(angle = 40, hjust = 1)) +
+  xlab('Primary Education Type (private/public)') +
+  ylab('Percentage')
 ```
+
+```{r health_sum}
+summary(subset(households, !is.na(SALUD))$SALUD)
+```
+
+```{r health, fig.align='center'}
+ggplot(aes(SALUD), data = subset(households, !is.na(SALUD))) +
+  geom_histogram(fill = "#67a9cf", binwidth = 10) +
+  xlab('Health Expenditure (US$)') +
+  ylab('Frequency')
+```
+
+```{r health_log, fig.align='center'}
+ggplot(aes(SALUD), data = subset(households, !is.na(SALUD))) +
+  geom_histogram(fill = "#67a9cf", binwidth = 0.2) +
+  scale_x_continuous(trans="log1p", breaks=c(5,50,100,200,1000,2000)) +
+  xlab('Health Expenditure (US$)') +
+  ylab('Frequency')
+```
+
+
 
 # Bivariate Analysis.
 
@@ -376,10 +425,10 @@ ggplot(aes(Var2, y=100 * Freq), data=cont_table) +
 
 
 
-```{r echo=F}
+```{r echo=F, fig.align='center'}
 ggplot(aes(age, INGDA), data=subset(households, age > 0 & INGDA > 0)) +
   geom_jitter(alpha=0.4) +
-  scale_y_log10(breaks=c(30000,100000,500000,1000000,10000000))
+  scale_y_log10(breaks=c(30000))
 
 ggplot(aes(age, INGDA), data=subset(households, age > 0 & INGDA > 0)) +
   geom_jitter(alpha=0.4) +
@@ -387,20 +436,48 @@ ggplot(aes(age, INGDA), data=subset(households, age > 0 & INGDA > 0)) +
 ```
 
 ```{r warning=F, echo=F, fig.align='center'}
-ggplot(aes(INGDHOG_HD_AI, GASTOT_FNR_AI/623.), data=subset(households, JHOGAR="Si")) +
-  geom_point(alpha=0.01) + scale_x_log10(breaks=c(100,1000,10000)) + scale_y_log10(breaks=c(100,1000,10000)) + geom_smooth(method = "gam", formula = y ~ x) +
-  coord_cartesian(xlim=c(100,70000), ylim=c(100,70000))
+ggplot(aes(INGDHOG_HD, GASTOT_FNR), data=subset(households, household.head == 1)) +
+  geom_point(alpha=0.3) + scale_x_log10(breaks=c(100,1000,10000)) + geom_smooth()
+```
+
+```{r warning=F, echo=F, fig.align='center'}
+p1 <- ggplot(aes(INGDHOG_HD, INGDHOG_HD - GASTOT_FNR), data=subset(households, household.head == 1)) +
+  geom_point(alpha=0.3) + scale_x_log10(breaks=c(100,1000,10000)) + geom_smooth() +
+  coord_cartesian()
+
+p2 <- ggplot(aes(INGDHOG_HD, INGDHOG_HD - GASTOT_FNR), data=subset(households, household.head == 1)) +
+  geom_point(alpha=0.3) + scale_x_log10(breaks=c(100,1000,10000)) + geom_smooth() +
+  coord_cartesian(xlim=c(100,10000), ylim=c(-1000,1000))
+
+grid.arrange(p1, p2, ncol=1)
 ```
 
 ```{r echo=F, fig.align='center'}
-outdec <- subset(households, !is.na(income.dec)) %>% 
-  group_by(income.dec) %>% 
-  summarise(Total=sum(GASTOT_FNR_AI, na.rm=T)/612.)
+ggplot(aes(income.dec, INGHOG_HD - GASTOT_FNR), data = subset(households, person.id == 1)) + geom_hline(yintercept=0) +
+  geom_jitter(alpha=0.1) + geom_boxplot()
 
-p2 <- ggplot(aes(income.dec, y= 100 * Total / sum(Total)),
-             data = outdec) +
-  geom_bar(stat="identity", fill = "#67a9cf") +
-  coord_cartesian(ylim=c(0, 40))
+ggplot(aes(income.dec, GASTOT_FNR / INGHOG_HD), data = subset(households, person.id == 1 & GASTOT_FNR / INGHOG_HD <= 10)) + geom_hline(yintercept=1) +
+  geom_jitter(alpha=0.1) + geom_boxplot() +  scale_y_continuous(trans='log1p')
 
-grid.arrange(p1, p2, ncol=1)
+```
+
+What are households expending on?
+
+```{r fig.align='center', fig.width=10}
+tabex <- expenses %>% group_by(GLOSA) %>% summarise(expend = sum(GASTO))
+usar <- as.character(as.data.frame(tabex[order(-tabex$expend)[2:33][-17][-14],])[,1])
+
+highexp <- subset(expenses, GLOSA %in% usar)
+
+tabexp2 <- highexp %>% group_by(GLOSA) %>% summarise(med = median(GASTO))
+usar2 <- as.character(as.data.frame(tabexp2[order(-tabexp2$med),])[,1])
+
+ggplot(aes(factor(GLOSA, levels = usar2), GASTO), data = highexp) + 
+  geom_jitter(alpha = 0.3, color = "#67a9cf") + 
+  geom_boxplot(alpha = 0.8) + 
+  scale_y_log10() + 
+  scale_x_discrete(labels = 1:30) +
+  xlab('Expenditure Category') +
+  ylab('Expenditure Amount (US$)')
+
 ```
