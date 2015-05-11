@@ -69,11 +69,13 @@ img {
 
 
 <p>The following code chunk is not executed, but it gives information about loading the data sets from the SPSS format, converting the string variables to UTF-8 encoding, and storing the files in RData.</p>
-<pre class="r"><code>households &lt;- read.spss('~/Downloads/BASE_PERSONAS_VIIEPF.sav', to.data.frame=T)
-expenses &lt;- read.spss('~/Downloads/BASE_GASTOS_VIIEPF.sav', to.data.frame=T)
+<pre class="r"><code>households &lt;- read.spss('~/Downloads/personas_spss.sav', to.data.frame = T)
+expenses &lt;- read.spss('~/Downloads/gastos_spss.sav', to.data.frame = T)
+cate &lt;- read.spss('~/Downloads/CCIF_VIIEPF.sav', to.data.frame = T)
 
-nhou &lt;- c(&quot;PARENTESCO&quot;, &quot;TVP&quot;, &quot;VS&quot;, &quot;SP01&quot;, &quot;SP03&quot;, &quot;AECISE&quot;, &quot;CISE_4&quot;, 
-          &quot;AECIUO&quot;, &quot;PETG&quot;,  &quot;CAEG&quot;, &quot;CISEG&quot;, &quot;AEPRL&quot;)
+nhou &lt;- c(&quot;PARENTESCO&quot;, &quot;TVP&quot;, &quot;VS&quot;, &quot;SP01&quot;, &quot;SP02&quot;, &quot;SP03&quot;, &quot;AECISE&quot;, &quot;CISE_4&quot;, 
+          &quot;AECIUO&quot;, &quot;PETG&quot;,  &quot;CAEG&quot;, &quot;CISEG&quot;, &quot;AEPRL&quot;, &quot;EDUNIVEL&quot;, &quot;SP04&quot;,
+          &quot;AECIUO2&quot;, &quot;AE01&quot;, &quot;AE02&quot;, &quot;AE03&quot;, &quot;EDUACTUAL&quot;, &quot;AE08&quot;)
 for (i in nhou) {
   tempo &lt;- levels(households[, i])
   tempo &lt;- iconv(tempo, 'latin1', 'utf-8')
@@ -93,338 +95,68 @@ save(file='descript.RData', description_households)</code></pre>
 load('expenses.RData')
 load('education.RData')
 str(households)</code></pre>
-<pre><code>## 'data.frame':    35669 obs. of  61 variables:
-##  $ ZONA         : Factor w/ 2 levels &quot;RM&quot;,&quot;REGIONES&quot;: 2 2 2 2 2 2 2 2 2 2 ...
-##  $ FOLIO        : Factor w/ 10528 levels &quot;00001-1&quot;,&quot;00002-1&quot;,..: 1 1 1 1 2 2 2 2 3 4 ...
-##  $ PERSONA      : num  1 2 3 4 1 2 3 4 1 1 ...
-##  $ FE           : num  204 204 204 204 204 ...
-##  $ NPERSONA     : num  4 4 4 4 4 4 4 4 1 5 ...
-##  $ JHOGAR       : Factor w/ 2 levels &quot;Si&quot;,&quot;No&quot;: 1 NA NA NA 1 NA NA NA 1 1 ...
-##  $ PARENTESCO   : Factor w/ 14 levels &quot;Jefe(a) de hogar&quot;,..: 1 4 4 4 1 2 4 9 1 1 ...
-##  $ SEXO         : Factor w/ 2 levels &quot;HOMBRE&quot;,&quot;MUJER&quot;: 2 2 2 2 1 2 1 1 1 2 ...
-##  $ EDAD         : num  43 21 19 12 39 33 16 77 67 71 ...
-##  $ ECIVIL       : Factor w/ 8 levels &quot;No responde&quot;,..: 5 4 4 4 2 2 4 6 4 8 ...
-##  $ EDUE         : num  12 13 12 0 8 7 7 12 0 3 ...
-##  $ EDUCURSO     : num  4 1 4 9 8 7 7 6 0 3 ...
-##  $ EDUNIVEL     : Factor w/ 16 levels &quot;0&quot;,&quot;1&quot;,&quot;2&quot;,&quot;3&quot;,..: 8 13 8 1 5 5 5 9 1 6 ...
-##  $ EDUTERMINA   : num  1 2 1 NA 1 2 2 1 NA 2 ...
-##  $ SPRINCIPAL   : num  1 2 2 2 1 2 2 2 1 1 ...
-##  $ ECOMPRAS     : num  2 2 2 2 2 1 2 2 2 2 ...
-##  $ TVP          : Factor w/ 10 levels &quot;No responde&quot;,..: 7 7 7 7 10 10 10 10 7 2 ...
-##  $ VS           : Factor w/ 2 levels &quot;Tiene vivienda secundaria&quot;,..: 2 2 2 2 2 2 2 2 2 2 ...
-##  $ SP01         : Factor w/ 6 levels &quot;No Sabe&quot;,&quot;No Responde&quot;,..: 5 5 1 3 5 6 3 4 4 4 ...
-##  $ SP03         : Factor w/ 6 levels &quot;No Sabe&quot;,&quot;No Responde&quot;,..: 6 5 1 3 5 6 3 5 5 5 ...
-##  $ AECISE       : Factor w/ 6 levels &quot;Patrón o empleador&quot;,..: 3 5 NA NA 2 NA NA 2 2 NA ...
-##  $ CISE_4       : Factor w/ 6 levels &quot;Jubilados&quot;,&quot;Asalariado&quot;,..: 2 3 NA NA 4 NA NA 4 4 NA ...
-##  $ AECIUO       : Factor w/ 10 levels &quot;Miembros del Poder Ejecutivo y de los Cuerpos Legislativos y&quot;,..: 5 5 NA NA 9 NA NA 7 9 NA ...
-##  $ PETG         : Factor w/ 2 levels &quot;De 15 años o más&quot;,..: 1 1 1 2 1 1 1 1 1 1 ...
-##  $ CAEG         : Factor w/ 4 levels &quot;No responde&quot;,..: 3 3 4 2 3 4 4 3 3 4 ...
-##  $ CISEG        : Factor w/ 4 levels &quot;No coopera con la encuesta&quot;,..: 3 3 2 NA 4 2 2 4 4 2 ...
-##  $ AEPRL        : Factor w/ 4 levels &quot;No coopera con la encuesta&quot;,..: 3 3 2 NA 3 2 2 3 3 2 ...
-##  $ GASTOT_FNR   : num  1163749 1163749 1163749 1163749 258746 ...
-##  $ GASTOT_FNR_AI: num  1263749 1263749 1263749 1263749 338746 ...
-##  $ INGDHOG_HD   : num  929442 929442 929442 929442 569062 ...
-##  $ INGDHOG_HD_AI: num  1029442 1029442 1029442 1029442 649062 ...
-##  $ INGHOG_HD    : num  935442 935442 935442 935442 591196 ...
-##  $ INGHOG_HD_AI : num  1035442 1035442 1035442 1035442 671196 ...
-##  $ AI_VP        : num  100000 100000 100000 100000 80000 80000 80000 80000 110000 140000 ...
-##  $ AI_VS2       : num  NA NA NA NA NA NA NA NA NA NA ...
-##  $ INGTD        : num  251658 54000 NA NA NA ...
-##  $ INGTI        : num  NA NA NA NA 2e+05 NA NA 1e+05 2e+04 NA ...
-##  $ INGDA        : num  0 0 0 0 0 0 0 0 0 0 ...
-##  $ INGDA_HD     : num  251658 NA NA NA NA ...
-##  $ INGA         : num  NA NA NA NA NA NA NA NA NA NA ...
-##  $ INGA_HD      : num  251658 NA NA NA NA ...
-##  $ INGDH        : num  0 54000 0 0 0 0 0 0 0 0 ...
-##  $ INGDH_HD     : num  NA 54000 NA NA NA NA NA NA NA NA ...
-##  $ INGH         : num  NA 60000 NA NA NA NA NA NA NA NA ...
-##  $ INGH_HD      : num  NA 60000 NA NA NA NA NA NA NA NA ...
-##  $ INGDCP       : num  0e+00 0e+00 0e+00 0e+00 2e+05 0e+00 0e+00 1e+05 2e+04 0e+00 ...
-##  $ INGDCP_HD    : num  NA NA NA NA 2e+05 NA NA 1e+05 2e+04 NA ...
-##  $ INGCP        : num  NA NA NA NA 2e+05 NA NA 1e+05 2e+04 NA ...
-##  $ INGCP_HD     : num  NA NA NA NA 2e+05 NA NA 1e+05 2e+04 NA ...
-##  $ INGDPI       : num  0 0 0 0 0 0 0 0 0 0 ...
-##  $ INGDPI_HD    : num  NA NA NA NA NA NA NA NA NA NA ...
-##  $ INGPI        : num  NA NA NA NA NA NA NA NA NA NA ...
-##  $ INGPI_HD     : num  NA NA NA NA NA NA NA NA NA NA ...
-##  $ INGJ         : num  NA NA NA NA NA ...
-##  $ INGJ_HD      : num  NA NA NA NA NA ...
-##  $ INGOTA       : num  NA NA NA NA NA NA NA NA NA NA ...
-##  $ INGOTI       : num  NA NA NA NA NA NA NA NA NA NA ...
-##  $ INGP         : num  70000 NA NA NA NA NA NA NA NA NA ...
-##  $ INGF         : num  NA NA NA NA NA NA NA NA NA NA ...
-##  $ INGT_NETA    : num  553784 NA NA NA NA ...
-##  $ ID_MISSING   : Factor w/ 2 levels &quot;No presenta ingresos subdeclarados&quot;,..: 1 1 1 1 1 1 1 1 1 1 ...
-##  - attr(*, &quot;variable.labels&quot;)= Named chr  &quot;Zona&quot; &quot;Identificador hogar&quot; &quot;Identificador persona&quot; &quot;Factor de expansión&quot; ...
-##   ..- attr(*, &quot;names&quot;)= chr  &quot;ZONA&quot; &quot;FOLIO&quot; &quot;PERSONA&quot; &quot;FE&quot; ...</code></pre>
+<pre><code>## 'data.frame':    35144 obs. of  42 variables:
+##  $ zone                   : Factor w/ 3 levels &quot;Metropolitana&quot;,..: 3 3 3 3 3 3 3 3 3 3 ...
+##  $ home.id                : chr  &quot;00001-1&quot; &quot;00001-1&quot; &quot;00001-1&quot; &quot;00001-1&quot; ...
+##  $ person.id              : num  1 2 3 4 1 2 3 4 1 1 ...
+##  $ num.inhabitants        : num  4 4 4 4 4 4 4 4 1 5 ...
+##  $ household.head         : num  1 0 0 0 1 0 0 0 1 1 ...
+##  $ kinship                : Factor w/ 14 levels &quot;Household Head&quot;,..: 1 4 4 4 1 2 4 9 1 1 ...
+##  $ gender                 : Factor w/ 2 levels &quot;Men&quot;,&quot;Women&quot;: 2 2 2 2 1 2 1 1 1 2 ...
+##  $ age                    : num  43 21 19 12 39 33 16 77 67 71 ...
+##  $ mstatus                : Factor w/ 8 levels &quot;No responde&quot;,..: 5 4 4 4 2 2 4 6 4 8 ...
+##  $ edu.level              : Factor w/ 17 levels &quot;NA&quot;,&quot;Special Ed.&quot;,..: 9 14 9 2 6 6 6 10 2 7 ...
+##  $ edu.finish             : Factor w/ 2 levels &quot;Si&quot;,&quot;No&quot;: 1 2 1 NA 1 2 2 1 NA 2 ...
+##  $ studying               : Factor w/ 6 levels &quot;No responde&quot;,..: 6 3 6 4 6 6 3 6 6 6 ...
+##  $ edependence            : Factor w/ 12 levels &quot;Not Studying&quot;,..: 1 9 1 1 1 1 2 1 1 1 ...
+##  $ tph                    : Factor w/ 10 levels &quot;NA&quot;,&quot;Fully Owned&quot;,..: 7 7 7 7 10 10 10 10 7 2 ...
+##  $ sec.house              : Factor w/ 2 levels &quot;Tiene vivienda secundaria&quot;,..: 2 2 2 2 2 2 2 2 2 2 ...
+##  $ health.sys             : Factor w/ 6 levels &quot;No Sabe&quot;,&quot;No Responde&quot;,..: 5 5 1 3 5 6 3 4 4 4 ...
+##  $ pension.sys            : Factor w/ 6 levels &quot;No Sabe&quot;,&quot;No Responde&quot;,..: 6 5 1 3 5 6 3 5 5 5 ...
+##  $ ices                   : Factor w/ 6 levels &quot;Patrón o empleador&quot;,..: 3 5 NA NA 2 NA NA 2 2 NA ...
+##  $ ices.sum               : Factor w/ 6 levels &quot;Jubilados&quot;,&quot;Asalariado&quot;,..: 2 3 NA NA 4 NA NA 4 4 NA ...
+##  $ workage.pop            : Factor w/ 2 levels &quot;De 15 años o más&quot;,..: 1 1 1 2 1 1 1 1 1 1 ...
+##  $ work.cond              : Factor w/ 4 levels &quot;No responde&quot;,..: 3 3 4 2 3 4 4 3 3 4 ...
+##  $ work.cond.sum          : Factor w/ 4 levels &quot;No coopera con la encuesta&quot;,..: 3 3 2 NA 4 2 2 4 4 2 ...
+##  $ expenses.tot           : num  1902 1902 1902 1902 423 ...
+##  $ expenses.tot.rent      : num  2065 2065 2065 2065 554 ...
+##  $ income.hh.av           : num  1519 1519 1519 1519 930 ...
+##  $ income.hh.av.rent      : num  1682 1682 1682 1682 1061 ...
+##  $ income.hh.gross        : num  1528 1528 1528 1528 966 ...
+##  $ income.hh.gross.rent   : num  1692 1692 1692 1692 1097 ...
+##  $ hh.p.rent              : num  163 163 163 163 131 ...
+##  $ hh.s.rent              : num  NA NA NA NA NA NA NA NA NA NA ...
+##  $ dep.work.income        : num  411.2 88.2 NA NA NA ...
+##  $ indep.work.income      : num  NA NA NA NA 327 ...
+##  $ pension.income         : num  NA NA NA NA NA ...
+##  $ other.dep.work.income  : num  NA NA NA NA NA NA NA NA NA NA ...
+##  $ other.indep.work.income: num  NA NA NA NA NA NA NA NA NA NA ...
+##  $ prop.income            : num  114 NA NA NA NA ...
+##  $ fin.income             : num  NA NA NA NA NA NA NA NA NA NA ...
+##  $ trans.income           : num  905 NA NA NA NA ...
+##  $ health.exp             : num  NA NA NA NA NA NA NA NA NA NA ...
+##  $ pension.exp            : num  NA NA NA NA NA NA NA NA NA NA ...
+##  $ taxes.exp              : num  NA 6000 NA NA NA NA NA NA NA NA ...
+##  $ inc.miss               : Factor w/ 2 levels &quot;No presenta ingresos subdeclarados&quot;,..: 1 1 1 1 1 1 1 1 1 1 ...</code></pre>
 <pre class="r"><code>str(expenses)</code></pre>
-<pre><code>## 'data.frame':    641906 obs. of  11 variables:
-##  $ ZONA : Factor w/ 2 levels &quot;RM&quot;,&quot;REGIONES&quot;: 2 2 2 2 2 2 2 2 2 2 ...
-##  $ FOLIO: Factor w/ 10529 levels &quot;          &quot;,&quot;00001-1   &quot;,..: 2 2 2 2 2 2 2 2 2 2 ...
-##  $ CCIF : Factor w/ 1099 levels &quot;01.1.1.01.01 &quot;,..: 1 2 3 4 9 10 13 14 16 18 ...
-##  $ D    : Factor w/ 12 levels &quot;01&quot;,&quot;02&quot;,&quot;03&quot;,..: 1 1 1 1 1 1 1 1 1 1 ...
-##  $ G    : Factor w/ 8 levels &quot;1&quot;,&quot;2&quot;,&quot;3&quot;,&quot;4&quot;,..: 1 1 1 1 1 1 1 1 1 1 ...
-##  $ C    : Factor w/ 9 levels &quot;1&quot;,&quot;2&quot;,&quot;3&quot;,&quot;4&quot;,..: 1 1 1 1 1 1 1 1 1 2 ...
-##  $ SC   : Factor w/ 12 levels &quot;01&quot;,&quot;02&quot;,&quot;03&quot;,..: 1 2 2 2 4 4 4 5 5 1 ...
-##  $ P    : Factor w/ 29 levels &quot;01&quot;,&quot;02&quot;,&quot;03&quot;,..: 1 1 2 3 1 2 5 1 3 1 ...
-##  $ GASTO: num  1000 15480 2008 10026 2900 ...
-##  $ GLOSA: Factor w/ 1099 levels &quot;ÁLBUMES                                                                                                                        &quot;| __truncated__,..: 99 716 717 718 378 516 1019 423 212 203 ...
-##  $ FE   : num  204 204 204 204 204 ...</code></pre>
-<p>The <code>households</code> data set contains 61 variables and 35669 observations, corresponding to a total of 10528 households. The data set have 19 factor and 42 numeric varibles.</p>
-<table>
-<thead>
-<tr class="header">
-<th align="left"></th>
-<th align="right">Variable Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">ZONA</td>
-<td align="right">Zone</td>
-</tr>
-<tr class="even">
-<td align="left">FOLIO</td>
-<td align="right">Household unique identifier.</td>
-</tr>
-<tr class="odd">
-<td align="left">PERSONA</td>
-<td align="right">Person order within a household.</td>
-</tr>
-<tr class="even">
-<td align="left">FE</td>
-<td align="right">Expansion factor.</td>
-</tr>
-<tr class="odd">
-<td align="left">NPERSONA</td>
-<td align="right">Household’s number of members.</td>
-</tr>
-<tr class="even">
-<td align="left">JHOGAR</td>
-<td align="right">Is the person the Household’s head?</td>
-</tr>
-<tr class="odd">
-<td align="left">PARENTESCO</td>
-<td align="right">Relationship to the households’s head.</td>
-</tr>
-<tr class="even">
-<td align="left">SEXO</td>
-<td align="right">Person’s gender.</td>
-</tr>
-<tr class="odd">
-<td align="left">EDAD</td>
-<td align="right">Person’s age.</td>
-</tr>
-<tr class="even">
-<td align="left">ECIVIL</td>
-<td align="right">Person’s marital status of the person.</td>
-</tr>
-<tr class="odd">
-<td align="left">EDUE</td>
-<td align="right">Person’s years of schooling.</td>
-</tr>
-<tr class="even">
-<td align="left">EDUCURSO</td>
-<td align="right">Person’s number of approved courses.</td>
-</tr>
-<tr class="odd">
-<td align="left">EDUNIVEL</td>
-<td align="right">Person’s educational level.</td>
-</tr>
-<tr class="even">
-<td align="left">EDUTERMINA</td>
-<td align="right">Did the individual finish the educational level?</td>
-</tr>
-<tr class="odd">
-<td align="left">SPRINCIPAL</td>
-<td align="right">The person who contributed most to the household budget: Main breadwinner.</td>
-</tr>
-<tr class="even">
-<td align="left">ECOMPRAS</td>
-<td align="right">Person in charge of household’s purchases.</td>
-</tr>
-<tr class="odd">
-<td align="left">TVP</td>
-<td align="right">Household type of tenure.</td>
-</tr>
-<tr class="even">
-<td align="left">VS</td>
-<td align="right">Second houshold type of tenure (if any).</td>
-</tr>
-<tr class="odd">
-<td align="left">SP01</td>
-<td align="right">Person’s health insurance</td>
-</tr>
-<tr class="even">
-<td align="left">SP03</td>
-<td align="right">Person’s retirement found.</td>
-</tr>
-<tr class="odd">
-<td align="left">AECISE</td>
-<td align="right">International Classification of Status in Employment (ind.)</td>
-</tr>
-<tr class="even">
-<td align="left">CISE_4</td>
-<td align="right">International Classification of Status in Employment (summary, ind.)</td>
-</tr>
-<tr class="odd">
-<td align="left">AECIUO</td>
-<td align="right">Uniform International Classification of Occupations (ind.)</td>
-</tr>
-<tr class="even">
-<td align="left">PETG</td>
-<td align="right">Person’s working population catergory.</td>
-</tr>
-<tr class="odd">
-<td align="left">CAEG</td>
-<td align="right">Person’s economical activity status.</td>
-</tr>
-<tr class="even">
-<td align="left">CISEG</td>
-<td align="right">International Classification of Status in Employment, summary (2 cat.)</td>
-</tr>
-<tr class="odd">
-<td align="left">AEPRL</td>
-<td align="right">Reference period of the main economic activity.</td>
-</tr>
-<tr class="even">
-<td align="left">GASTOT_FNR</td>
-<td align="right">Total expenses per household adjusted for non-response (w/o imputed rent)</td>
-</tr>
-<tr class="odd">
-<td align="left">GASTOT_FNR_AI</td>
-<td align="right">Total expenses per household adjusted for non-response (with imputed rent)</td>
-</tr>
-<tr class="even">
-<td align="left">INGDHOG_HD</td>
-<td align="right">Total available household income (without imputed rent)</td>
-</tr>
-<tr class="odd">
-<td align="left">INGDHOG_HD_AI</td>
-<td align="right">Total available household income (with imputed rent)</td>
-</tr>
-<tr class="even">
-<td align="left">INGHOG_HD</td>
-<td align="right">Total gross household income (without imputed rent)</td>
-</tr>
-<tr class="odd">
-<td align="left">INGHOG_HD_AI</td>
-<td align="right">Total gross income per household (with imputed rent)</td>
-</tr>
-<tr class="even">
-<td align="left">AI_VP</td>
-<td align="right">Imputed rent, main household</td>
-</tr>
-<tr class="odd">
-<td align="left">AI_VS2</td>
-<td align="right">Imputed rent, second household</td>
-</tr>
-<tr class="even">
-<td align="left">INGTD</td>
-<td align="right">Income from dependent employment</td>
-</tr>
-<tr class="odd">
-<td align="left">INGTI</td>
-<td align="right">Income from self-employment</td>
-</tr>
-<tr class="even">
-<td align="left">INGDA</td>
-<td align="right">Available income from salary</td>
-</tr>
-<tr class="odd">
-<td align="left">INGDA_HD</td>
-<td align="right">Available income from salary imputed by HD</td>
-</tr>
-<tr class="even">
-<td align="left">INGA</td>
-<td align="right">Gross income from salary</td>
-</tr>
-<tr class="odd">
-<td align="left">INGA_HD</td>
-<td align="right">Gross income from salary imputed by HD</td>
-</tr>
-<tr class="even">
-<td align="left">INGDH</td>
-<td align="right">Available income from</td>
-</tr>
-<tr class="odd">
-<td align="left">INGDH_HD</td>
-<td align="right">Disposable income of fees imputed by HD</td>
-</tr>
-<tr class="even">
-<td align="left">INGH</td>
-<td align="right">Gross income from fees observed</td>
-</tr>
-<tr class="odd">
-<td align="left">INGH_HD</td>
-<td align="right">Gross income from fees imputed by HD</td>
-</tr>
-<tr class="even">
-<td align="left">INGDCP</td>
-<td align="right">Income available for those with business on their own observed</td>
-</tr>
-<tr class="odd">
-<td align="left">INGDCP_HD</td>
-<td align="right">Income available for those with business imputed with HD</td>
-</tr>
-<tr class="even">
-<td align="left">INGCP</td>
-<td align="right">Gross income of those who are self-employed business noticed</td>
-</tr>
-<tr class="odd">
-<td align="left">INGCP_HD</td>
-<td align="right">Gross income for those with business imputed with HD</td>
-</tr>
-<tr class="even">
-<td align="left">INGDPI</td>
-<td align="right">Disposable income of independent professionals observed</td>
-</tr>
-<tr class="odd">
-<td align="left">INGDPI_HD</td>
-<td align="right">Disposable income of the accused freelancers for HD</td>
-</tr>
-<tr class="even">
-<td align="left">INGPI</td>
-<td align="right">Gross income of freelancers observed</td>
-</tr>
-<tr class="odd">
-<td align="left">INGPI_HD</td>
-<td align="right">Gross income of independent professionals imputed with HD</td>
-</tr>
-<tr class="even">
-<td align="left">INGJ</td>
-<td align="right">Gross income in retirement observed</td>
-</tr>
-<tr class="odd">
-<td align="left">INGJ_HD</td>
-<td align="right">Gross income in retirement accused by HD</td>
-</tr>
-<tr class="even">
-<td align="left">INGOTA</td>
-<td align="right">Gross income from other salaried jobs</td>
-</tr>
-<tr class="odd">
-<td align="left">INGOTI</td>
-<td align="right">Gross income from other freelance jobs</td>
-</tr>
-<tr class="even">
-<td align="left">INGP</td>
-<td align="right">Income Property</td>
-</tr>
-<tr class="odd">
-<td align="left">INGF</td>
-<td align="right">Income from financial instruments</td>
-</tr>
-<tr class="even">
-<td align="left">INGT_NETA</td>
-<td align="right">Income from net transfers</td>
-</tr>
-<tr class="odd">
-<td align="left">ID_MISSING</td>
-<td align="right">Identification of home with underreported income</td>
-</tr>
-</tbody>
-</table>
+<pre><code>## 'data.frame':    641870 obs. of  10 variables:
+##  $ zone       : Factor w/ 2 levels &quot;RM&quot;,&quot;REGIONES&quot;: 2 2 2 2 2 2 2 2 2 2 ...
+##  $ home.id    : chr  &quot;00001-1&quot; &quot;00001-1&quot; &quot;00001-1&quot; &quot;00001-1&quot; ...
+##  $ exp.cat.id : Factor w/ 1099 levels &quot;01.1.1.01.01 &quot;,..: 1 2 3 4 9 10 13 14 16 18 ...
+##  $ d          : Factor w/ 12 levels &quot;01&quot;,&quot;02&quot;,&quot;03&quot;,..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ g          : Factor w/ 8 levels &quot;1&quot;,&quot;2&quot;,&quot;3&quot;,&quot;4&quot;,..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ c          : Factor w/ 9 levels &quot;1&quot;,&quot;2&quot;,&quot;3&quot;,&quot;4&quot;,..: 1 1 1 1 1 1 1 1 1 2 ...
+##  $ sc         : Factor w/ 12 levels &quot;01&quot;,&quot;02&quot;,&quot;03&quot;,..: 1 2 2 2 4 4 4 5 5 1 ...
+##  $ p          : Factor w/ 29 levels &quot;01&quot;,&quot;02&quot;,&quot;03&quot;,..: 1 1 2 3 1 2 5 1 3 1 ...
+##  $ expense    : num  1.63 25.29 3.28 16.38 4.74 ...
+##  $ description: Factor w/ 1099 levels &quot;ÁLBUMES                                                                                                                        &quot;| __truncated__,..: 99 716 717 718 378 516 1019 423 212 203 ...</code></pre>
+<p>The <code>households</code> data set contains 42 variables and 35144 observations, corresponding to a total of 0 households. The data set have 18 factor and 23 numeric varibles.</p>
+<pre class="r"><code>nh &lt;- names(households)
+nh[42:76]
+for (i in nh[42:76]) {
+  households[, i] &lt;- households[, i] / 612
+}</code></pre>
+<p>01-12 - Individual consumption expenditure of households 01 - Food and non-alcoholic beverages 01.1 - Food 01.2 - Non-alcoholic beverages 02 - Alcoholic beverages, tobacco and narcotics 02.1 - Alcoholic beverages 02.2 - Tobacco 02.3 - Narcotics 03 - Clothing and footwear 03.1 - Clothing 03.2 - Footwear 04 - Housing, water, electricity, gas and other fuels 04.1 - Actual rentals for housing 04.2 - Imputed rentals for housing 04.3 - Maintenance and repair of the dwelling 04.4 - Water supply and miscellaneous services relating to the dwelling 04.5 - Electricity, gas and other fuels 05 - Furnishings, household equipment and routine household maintenance 05.1 - Furniture and furnishings, carpets and other floor coverings 05.2 - Household textiles 05.3 - Household appliances 05.4 - Glassware, tableware and household utensils 05.5 - Tools and equipment for house and garden 05.6 - Goods and services for routine household maintenance 06 - Health 06.1 - Medical products, appliances and equipment 06.2 - Outpatient services 06.3 - Hospital services 07 - Transport 07.1 - Purchase of vehicles 07.2 - Operation of personal transport equipment 07.3 - Transport services 08 - Communication 08.1 - Postal services 08.2 - Telephone and telefax equipment 08.3 - Telephone and telefax services 09 - Recreation and culture 09.1 - Audio-visual, photographic and information processing equipment 09.2 - Other major durables for recreation and culture 09.3 - Other recreational items and equipment, gardens and pets 09.4 - Recreational and cultural services 09.5 - Newspapers, books and stationery 09.6 - Package holidays 10 - Education 10.1 - Pre-primary and primary education 10.2 - Secondary education 10.3 - Post-secondary non-tertiary education 10.4 - Tertiary education 10.5 - Education not definable by level 11 - Restaurants and hotels 11.1 - Catering services 11.2 - Accommodation services 12 - Miscellaneous goods and services 12.1 - Personal care 12.2 - Prostitution 12.3 - Personal effects n.e.c. 12.4 - Social protection 12.5 - Insurance 12.6 - Financial services n.e.c. 12.7 - Other services n.e.c.</p>
 </div>
 
 
