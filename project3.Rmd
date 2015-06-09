@@ -548,18 +548,17 @@ significant with p < 0.05.
 
 ## Educational Attainment and Age
 
+We study now the relation between educational attainment and age. The next 
+figure explore this relation for two groups taken from the population that is
+currently not studying (as reported by the variable `studying`): one group
+includes the whole population (top bar plot); the other includes only the
+population not studying and over 30 years old. The variables used are:
 
+* `studying`: indicates wheter the person is currently studying.
 
-We see a pick in the distribution at category 5, which correspond to the primary
-education. This doesn't mean that most of the population only reach primary
-school: we have not removed the school-age population. We could use two 
-variables to subset the data and include only the population that is no longer
-studying:
+* `age`: individual age, in years.
 
-* `edu.finish`: indicates wheter the person did or not finish the educational
-  attainment reported.
-* `age`: we subset only the population over 30 years old, assuming that most
-  of the people is no longer studying at that age.
+* `edu.level`: education attainment. Factor with 16 levels, plus a NA option.
 
 ```{r edu_att_fin, fig.align='center', echo=F, warning=F}
 
@@ -571,7 +570,7 @@ p1 <- ggplot(
   scale_fill_brewer(palette = "Paired") +
   geom_vline(xintercept = 12.5) +
   coord_cartesian(ylim = c(0,32)) +
-  ggtitle("Population not Studying (over 3 years old).")+
+  ggtitle("Population not Studying (any age).")+
   xlab("Educational attainment") +
   ylab("Percentage")
 
@@ -590,19 +589,35 @@ p2 <- ggplot(
 grid.arrange(p1, p2, ncol = 1)
 ```
 
+The black vertical line separates the levels related to primary and secundary
+education (to the left) and tertiary or higher education attainment (to the 
+right). Not much difference is seen between both plots, but we wanted to be sure
+that we were not including individuals that have not actually finished they
+education, even when they are reported as not studying at the moment of the
+survey.
 
 ## Educational Attainment and Gender
 
-We will study the distribution using an stacked histogram, so we can study at 
-the same time if there are any significant differences between genders.
+We will study the relation between education attainment and gender, using an 
+stacked histogram.
 
 ```{r eduatt_gen, fig.align='center', echo=F}
 
 ggplot(aes(edu.level), data = households) + 
   geom_histogram(aes(fill = gender), position = 'dodge') + 
   scale_x_discrete(labels = append(seq(0,15,1), "NA")) +
-  scale_fill_brewer(palette = "Paired")
+  scale_fill_brewer(palette = "Paired") +
+  xlab('Educational Attainment Level') +
+  ylab('Frequency by gender')
 
+```
+
+---
+
+Because the number of women on our sample is bigger than the number of men, we
+will use instead the percentage of each gender for each level.
+
+```{r eduatt_gen_2, fig.align='center', echo=F}
 edu_get <- 
   households %>% 
   group_by(gender, edu.level) %>% 
@@ -617,14 +632,17 @@ ggplot(aes(edu.level), data = edu_get) +
     stat='identity'
     ) +
   scale_x_discrete(labels = append(seq(0,15,1), "NA")) +
-  scale_fill_brewer(palette = "Paired")
+  scale_fill_brewer(palette = "Paired") +
+  xlab('Educational Attainment Level') +
+  ylab('Percentage by level per gender')
 ```
 
-As shown in the [Introduction]
-
+We don't see major differences in educational attainment for different genders.
 
 
 ## Wage Income and Age
+
+
 
 ```{r age_inc, echo=F, fig.align='center', warning=F}
 age_inc <- 
@@ -632,7 +650,9 @@ age_inc <-
          data = subset(households, age > 0 & dep.work.income > 0)) +
   geom_jitter(alpha = 0.4) +
   scale_y_continuous(
-    trans = "log1p", breaks = c(100, 500, 1000, 2500, 5000, 10000, 25000))
+    trans = "log1p", breaks = c(100, 500, 1000, 2500, 5000, 10000, 25000)) +
+  xlab('Age (years)') +
+  ylab('Wage Income (USS$)')
 
 age_inc
 
@@ -644,18 +664,13 @@ sum_age_inc <-
 
 age_inc + 
   geom_line(stat = 'summary', fun.y = median, color = "#67a9cf", size = 2) + 
-  scale_x_continuous(limits = c(15, 80))
+  scale_x_continuous(limits = c(15, 80)) +
+  xlab('Age (years)') +
+  ylab('Wage Income (USS$)')
+
 ```
 
-```{r inc_exp1, warning=F, echo=F, fig.align='center', message=F}
-ggplot(aes(income.hh.av, expenses.tot),
-       data = subset(households, household.head == 1)) +
-  geom_point(alpha = 0.3) + 
-  scale_x_log10(limits = c(40, 15000)) +
-  scale_y_log10() +
-  coord_cartesian(xlim = c(40,15000), ylim=c(100,10000)) +
-  geom_smooth(method = 'lm')
-```
+
 
 ## Wage Income, Age and Gender.
 
@@ -666,7 +681,9 @@ ggplot(aes(age.group),
        data = subset(households, !is.na(dep.work.income) & !is.na(age.group))) +
   geom_boxplot(aes(y = dep.work.income, fill = gender)) + 
   scale_y_continuous(trans = 'log1p') + 
-  scale_fill_brewer(palette = "Paired")
+  scale_fill_brewer(palette = "Paired") +
+  xlab('Age Group (5 years bins)') +
+  ylab('Wage Income (USS$)')
 
 t1 <- dcast(subset(households, !is.na(dep.work.income)),
             age.group ~ gender,
@@ -681,10 +698,24 @@ w <- households %>%
 ggplot(aes(age.group), data = subset(w, !is.na(age.group))) + 
   geom_histogram(aes(y = inco, fill = gender), stat = 'identity',
                  alpha = 0.5, position = "identity", color = 'grey') + 
-  scale_fill_brewer(palette = "Paired")
+  scale_fill_brewer(palette = "Paired") +
+  xlab('Age Group (5 years bins)') +
+  ylab('Median Wage Income (USS$) per group by gender')
 ```
 
 ## Household's Income and Expenses
+
+```{r inc_exp1, warning=F, echo=F, fig.align='center', message=F}
+ggplot(aes(income.hh.av, expenses.tot),
+       data = subset(households, household.head == 1)) +
+  geom_point(alpha = 0.3) + 
+  scale_x_log10(limits = c(40, 15000)) +
+  scale_y_log10() +
+  coord_cartesian(xlim = c(40,15000), ylim=c(100,10000)) +
+  geom_smooth(method = 'lm') + 
+  xlab('Household Total Income (US$)') +
+  ylab('Household Total Expenses (US$)')
+```
 
 ```{r inc_exp3, echo=F, fig.align='center', warning=F}
 ggplot(aes(income.dec, income.hh.av - expenses.tot),
@@ -693,7 +724,9 @@ ggplot(aes(income.dec, income.hh.av - expenses.tot),
   geom_jitter(alpha = 0.1) +
   geom_boxplot(alpha = 0.5) +
   coord_cartesian(ylim = c(-1000, 5000)) +
-  theme(axis.text.x = element_text(angle = 40, hjust = 1))
+  theme(axis.text.x = element_text(angle = 40, hjust = 1)) +
+  xlab('Household Income Decil') +
+  ylab('Household\'s Income minus Expenses (US$)')
 
 ggplot(aes(income.dec, expenses.tot / income.hh.av),
        data = subset(
@@ -703,7 +736,9 @@ ggplot(aes(income.dec, expenses.tot / income.hh.av),
   geom_jitter(alpha = 0.1) + 
   geom_boxplot(alpha = 0.6) +
   theme(axis.text.x = element_text(angle = 40, hjust = 1)) +
-  scale_y_continuous(trans = 'log1p')
+  scale_y_continuous(trans = 'log1p') +
+  xlab('Household Income Decil') +
+  ylab('Household\'s Expenses as a fraction of Income')
 
 ```
 
@@ -754,7 +789,7 @@ ggplot(
   ylab('Expenditure Amount (US$)')
 ```
 
-## Household Income Decil and Expenditures
+
 
 ```{r exp_cat2, fig.align='center', fig.width=10, warning=F, echo=F}
 tabexp_med2 <- 
@@ -777,7 +812,7 @@ ggplot(
   ylab('Expenditure Amount (US$)')
 ```
 
-
+## Household Income Decil and Expenditures
 
 ```{r fig.align='center', fig.width=9, echo=F}
 t <- 
@@ -797,12 +832,16 @@ ggplot(aes(d, y = total), data = expsum) +
   geom_bar(aes(fill = d), stat = 'identity') +
   scale_x_discrete(labels = '') +
   scale_fill_brewer(palette = "Paired") +
+  ylab('Total Expenses by Category') +
+  xlab('Expenditure Category') +
   facet_wrap( ~ income.dec)
 
 ggplot(aes(income.dec, y = median), data = expsum) + 
   geom_bar(aes(fill = income.dec), stat = 'identity') +
   scale_x_discrete(labels = '') +
   scale_fill_brewer(palette = "Paired") +
+  ylab('Median Expense by Cat. per Decil') +
+  xlab('Household Income Decil') +
   facet_wrap( ~ d)
 ```
 
@@ -850,7 +889,9 @@ ggplot(houseinc[order(houseinc$per),], aes(cumsum(per) * 100.)) +
     show_guide = TRUE) +
   coord_cartesian(xlim = c(0, 100)) + 
   scale_color_manual(name = "Pop. %", values = c("red", "#67a9cf", "blue")) +
-  scale_y_continuous(labels = percent)
+  scale_y_continuous(labels = percent) +
+  ylab('Cummulative Wealth Percentage') +
+  xlab('Cummulative Household\'s Percentage, ordered by Income.')
 ```
 
 So, while the mean household income is 
@@ -898,7 +939,9 @@ expsum <-
 ggplot(aes(income.dec, y = 100 * total / suma), data = expsum) + 
   geom_bar(aes(fill = income.dec), stat = 'identity') + 
   scale_x_discrete(labels = '') +
-  scale_fill_brewer(palette = "Paired") +
+  scale_fill_brewer(palette = "Paired")  +
+  ylab('Expense Percentage by Cat. per Decil') +
+  xlab('Household Income Decil') +
   facet_wrap( ~ d)
 ```
 
